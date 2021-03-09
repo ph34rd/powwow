@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+
+    server:
+        build:
+            context: .
+            dockerfile: ./docker/powwow-server.Dockerfile
+            target: production
+        networks:
+            - powwow
+        ports:
+            - "9999:9999"
+
+    client:
+        build:
+            context: .
+            dockerfile: ./docker/powwow-client.Dockerfile
+            target: parallel
+        networks:
+          - powwow
+        environment:
+            - POWWOW_HOST="server"
+            - POWWOW_PARALLEL=100
+
+networks:
+    powwow:
+        driver: bridge
+        name: powwow-net

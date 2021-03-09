@@ -1,0 +1,23 @@
+# OSX
+.DS_Store
+._*
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Vscode
+.vscode
+
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.out
+*.test
+
+# Build
+build/bin
+build/coverage

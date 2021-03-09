@@ -1,0 +1,25 @@
+syntax = "proto3";
+package powwow.session;
+
+option go_package = "pb";
+
+import "gogoproto/gogo.proto";
+
+option (gogoproto.marshaler_all) = true;
+option (gogoproto.sizer_all) = true;
+option (gogoproto.unmarshaler_all) = true;
+
+message ServerHandshake {
+  bytes challenge = 1;
+  uint32 complexity = 2;
+}
+
+message ClientHandshake {
+  bytes nonce = 1;
+}
+
+message WoWRequest {}
+
+message WoWResponse {
+  string wow = 1;
+}
