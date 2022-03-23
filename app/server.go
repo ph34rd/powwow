@@ -1,4 +1,4 @@
-package server
+package app
 
 import (
 	"net"
@@ -7,16 +7,16 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/ph34rd/powwow/pkg/server/pool"
-	"github.com/ph34rd/powwow/pkg/server/reuse"
-	"github.com/ph34rd/powwow/pkg/services"
+	"github.com/ph34rd/powwow/pkg/logger"
+	"github.com/ph34rd/powwow/pkg/pool"
+	"github.com/ph34rd/powwow/pkg/reuse"
 	"github.com/ph34rd/powwow/pkg/session"
 )
 
 const minWorkers = 65536
 
 type Server struct {
-	logger *zap.Logger
+	logger logger.Logger
 
 	inShutdown sync.Once
 	closeCh    chan struct{}
@@ -26,11 +26,11 @@ type Server struct {
 	connList map[net.Conn]struct{}
 
 	bind     string
-	services *services.Services
+	services *lifecycle
 }
 
-func NewServer(lg *zap.Logger, bind string) (*Server, error) {
-	srv, err := services.NewServices(lg)
+func NewServer(lg logger.Logger, bind string) (*Server, error) {
+	srv, err := newLifecycle(lg)
 	lg.Info("services initialized")
 	if err != nil {
 		lg.Error("services init error", zap.Error(err))
@@ -92,7 +92,7 @@ loop:
 			}
 			return err
 		}
-		wPool.Go(session.NewServerSession(s.logger, s.services, conn).Handle)
+		wPool.Go(session.NewServerSession(conn, s.services.ServerServices).Handle)
 	}
 	return nil
 }

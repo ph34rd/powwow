@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/ph34rd/powwow/pkg/server/pool/prng"
+	"github.com/ph34rd/powwow/pkg/pool/prng"
 )
 
 const poolOvergrowthKillRatio = 0.33

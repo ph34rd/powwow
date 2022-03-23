@@ -9,7 +9,8 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/ph34rd/powwow/pkg/server"
+	"github.com/ph34rd/powwow/app"
+	"github.com/ph34rd/powwow/pkg/logger"
 )
 
 const cmdName = "powwow-server"
@@ -41,27 +42,20 @@ func main() {
 		return
 	}
 
-	loggerConfig := zap.NewProductionConfig()
-	if fs.Dev {
-		loggerConfig = zap.NewDevelopmentConfig()
-	}
-	logger, err := loggerConfig.Build(
-		zap.Fields(defaultProcessFields(cmdName)...),
-		zap.AddCaller(),
-	)
+	lg, err := logger.NewLogger(cmdName, fs.Dev)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "logger init error: %v", err)
 		os.Exit(1)
 		return
 	}
-	defer logger.Sync()
+	defer lg.Sync()
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-	srv, err := server.NewServer(logger, fs.Bind)
+	srv, err := app.NewServer(lg, fs.Bind)
 	if err != nil {
-		logger.Fatal("server init error", zap.Error(err))
+		lg.Fatal("server init error", zap.Error(err))
 		os.Exit(1)
 		return
 	}
@@ -74,7 +68,7 @@ func main() {
 
 	err = srv.Run()
 	if err != nil {
-		logger.Fatal("server error", zap.Error(err))
+		lg.Fatal("server error", zap.Error(err))
 		os.Exit(1)
 		return
 	}

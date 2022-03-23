@@ -10,13 +10,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/rs/xid"
 	"go.uber.org/zap"
 	"golang.org/x/time/rate"
 
 	"github.com/ph34rd/powwow/pb"
-	"github.com/ph34rd/powwow/pkg/services"
+	"github.com/ph34rd/powwow/pkg/logger"
 	"github.com/ph34rd/powwow/pkg/session/manager"
-	"github.com/ph34rd/powwow/pkg/transport"
+	"github.com/ph34rd/powwow/pkg/session/transport"
 )
 
 var errUnverifiedClient = errors.New("unverified client, access denied")
@@ -30,9 +31,9 @@ type ServerSession interface {
 
 // ServerHandler implements ServerSession.
 type ServerHandler struct {
-	logger   *zap.Logger
+	logger   logger.Logger
 	conn     net.Conn
-	services *services.Services
+	services *ServerServices
 
 	mu   sync.Mutex
 	drop bool
@@ -48,8 +49,9 @@ type ServerHandler struct {
 	transport  transport.Transport
 }
 
-func NewServerSession(lg *zap.Logger, services *services.Services, conn net.Conn) *ServerHandler {
-	sessLogger := lg.With(
+func NewServerSession(conn net.Conn, services *ServerServices) *ServerHandler {
+	sessLogger := services.Logger.With(
+		zap.String("id", xid.New().String()),
 		zap.String("remote", conn.RemoteAddr().String()),
 		zap.String("local", conn.LocalAddr().String()),
 	)

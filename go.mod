@@ -10,6 +10,7 @@ require (
 
 require (
 	github.com/gogo/protobuf v1.3.2
+	github.com/rs/xid v1.4.0
 	github.com/valyala/bytebufferpool v1.0.0
 	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292

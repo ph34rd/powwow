@@ -4,7 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 )
 
@@ -19,7 +19,7 @@ type flags struct {
 func newFlagSet() *flags {
 	f := &flags{}
 	f.FlagSet = flag.NewFlagSet(cmdName, flag.ContinueOnError)
-	f.FlagSet.SetOutput(ioutil.Discard)
+	f.FlagSet.SetOutput(io.Discard)
 	f.StringVar(&f.Addr, "addr", "localhost:9999", "connection address")
 	f.BoolVar(&f.PrintHelp, "help", false, "show help")
 	f.BoolVar(&f.PrintVersion, "version", false, "print version information")

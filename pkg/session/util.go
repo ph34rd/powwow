@@ -5,16 +5,11 @@ import (
 	"net"
 	"time"
 
-	"github.com/ph34rd/powwow/pkg/transport"
-
 	"github.com/gogo/protobuf/proto"
-
 	bb "github.com/valyala/bytebufferpool"
-)
 
-type flusher interface {
-	Flush() error
-}
+	"github.com/ph34rd/powwow/pkg/session/transport"
+)
 
 type linger interface {
 	SetLinger(sec int) error

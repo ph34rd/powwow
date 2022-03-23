@@ -1,23 +1,21 @@
-package services
+package app
 
 import (
 	"time"
 
-	"github.com/ph34rd/powwow/pkg/limiter"
-
-	"go.uber.org/zap"
 	"golang.org/x/crypto/sha3"
 
 	"github.com/ph34rd/powwow/pkg/complexer"
+	"github.com/ph34rd/powwow/pkg/limiter"
+	"github.com/ph34rd/powwow/pkg/logger"
 	"github.com/ph34rd/powwow/pkg/pow"
 	"github.com/ph34rd/powwow/pkg/session/manager"
 	"github.com/ph34rd/powwow/pkg/stat"
 	"github.com/ph34rd/powwow/pkg/wow"
 )
 
-const defaultGracePeriod = 30 * time.Second
-
 type Services struct {
+	Logger    logger.Logger
 	PoW       pow.PoW
 	WoW       wow.WoW
 	Sampler   stat.CPUSampler
@@ -26,9 +24,10 @@ type Services struct {
 	Limiter   limiter.StringLimiter
 }
 
-func NewServices(lg *zap.Logger) (*Services, error) {
+func NewServices(lg logger.Logger) (*Services, error) {
 	smSrv := stat.NewCPUSampler(lg, time.Second)
 	services := &Services{
+		Logger:    lg,
 		PoW:       pow.New(sha3.New256),
 		WoW:       wow.NewInMemory(),
 		Sampler:   smSrv,
@@ -37,15 +36,4 @@ func NewServices(lg *zap.Logger) (*Services, error) {
 		Limiter:   limiter.NewStringLimiter(),
 	}
 	return services, nil
-}
-
-func (s *Services) Shutdown() {
-	s.Manager.Close()
-	select {
-	case <-time.After(defaultGracePeriod):
-		s.Manager.Shutdown()
-		<-s.Manager.Done()
-	case <-s.Manager.Done():
-	}
-	s.Sampler.Shutdown()
 }

@@ -2,7 +2,6 @@ package transport
 
 import (
 	"io"
-	"io/ioutil"
 )
 
 type flusher interface {
@@ -19,7 +18,7 @@ func discardReader(r *io.LimitedReader) error {
 	if r.N == 0 {
 		return nil
 	}
-	_, err := io.Copy(ioutil.Discard, r)
+	_, err := io.Copy(io.Discard, r)
 	if err == nil {
 		return err
 	}

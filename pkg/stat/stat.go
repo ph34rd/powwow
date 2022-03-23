@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+
+	"github.com/ph34rd/powwow/pkg/logger"
 )
 
 // CPUUsage contains process CPU times.
@@ -20,7 +22,7 @@ type CPUSampler interface {
 }
 
 type SamplerImpl struct {
-	logger *zap.Logger
+	logger logger.Logger
 	numCPU int
 	period time.Duration
 
@@ -31,7 +33,7 @@ type SamplerImpl struct {
 	fraction float64
 }
 
-func NewCPUSampler(lg *zap.Logger, period time.Duration) *SamplerImpl {
+func NewCPUSampler(lg logger.Logger, period time.Duration) *SamplerImpl {
 	ret := &SamplerImpl{
 		logger: lg,
 		numCPU: runtime.NumCPU(),

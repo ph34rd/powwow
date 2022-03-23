@@ -3,19 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
-	"net"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/ph34rd/powwow/pkg/session"
+	"github.com/ph34rd/powwow/app"
 )
 
-const (
-	cmdName     = "powwow-client"
-	dialTimeout = 15 * time.Second
-)
+const cmdName = "powwow-client"
 
 var Version = "devel"
 
@@ -49,28 +45,17 @@ func main() {
 
 	ctx, cancelFn := context.WithCancel(context.Background())
 
-	d := net.Dialer{Timeout: dialTimeout, Deadline: time.Now().Add(dialTimeout)}
-	conn, err := d.DialContext(ctx, "tcp", fs.Addr)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "dial err: %v\n", err)
-		os.Exit(1)
-		return
-	}
-	defer conn.Close()
-
 	go func() {
 		for range sigChan {
 			cancelFn()
-			conn.Close()
 		}
 	}()
 
-	c := session.NewClientHandler(conn)
-	wow, err := c.GetWoW(ctx)
+	res, err := app.RunClient(ctx, fs.Addr)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "get wow err: %v\n", err)
+		fmt.Fprintf(os.Stderr, "client err: %v\n", err)
 		os.Exit(1)
 		return
 	}
-	fmt.Println(wow)
+	fmt.Println(res)
 }

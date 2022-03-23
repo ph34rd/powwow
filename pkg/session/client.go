@@ -6,14 +6,10 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"runtime"
 	"time"
 
-	"golang.org/x/crypto/sha3"
-
 	"github.com/ph34rd/powwow/pb"
-	"github.com/ph34rd/powwow/pkg/pow/hashcash"
-	"github.com/ph34rd/powwow/pkg/transport"
+	"github.com/ph34rd/powwow/pkg/session/transport"
 )
 
 const defaultPingDuration = 10 * time.Second
@@ -28,6 +24,7 @@ type ClientHandler struct {
 	r         *bufio.Reader
 	w         *bufio.Writer
 	transport transport.Transport
+	minterFn  ContextMinterFunc
 
 	challenge  []byte
 	complexity uint8
@@ -36,7 +33,7 @@ type ClientHandler struct {
 	wow        string
 }
 
-func NewClientHandler(conn net.Conn) *ClientHandler {
+func NewClientSession(conn net.Conn, minterFn ContextMinterFunc) *ClientHandler {
 	timeoutConn := newConnDeadlineWrapper(conn, defaultTimeout)
 	r := newBufioReader(timeoutConn)
 	w := newBufioWriter(timeoutConn)
@@ -45,6 +42,7 @@ func NewClientHandler(conn net.Conn) *ClientHandler {
 		r:         r,
 		w:         w,
 		transport: transport.NewTLVTransport(r, w, 0),
+		minterFn:  minterFn,
 	}
 }
 
@@ -130,15 +128,7 @@ func (c *ClientHandler) handleHandshake(r io.Reader) error {
 func (c *ClientHandler) mint(ctx context.Context) <-chan struct{} {
 	ch := make(chan struct{})
 	go func() {
-		iter, err := hashcash.NewFastIter(runtime.NumCPU())
-		if err != nil {
-			return
-		}
-		minter, err := hashcash.NewParallel(sha3.New256, iter, int(c.complexity), runtime.NumCPU())
-		if err != nil {
-			return
-		}
-		c.mintNonce, c.mintErr = minter.Mint(ctx, c.challenge)
+		c.mintNonce, c.mintErr = c.minterFn(ctx, c.complexity, c.challenge)
 		close(ch)
 	}()
 	return ch
